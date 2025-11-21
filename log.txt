@@ -1,0 +1,8 @@
+77a58b3 Task 2.4
+c66a019 Task 2.3
+d2086a4 Task 2.2
+31f5a9d Task 2.1
+29fac2a Task 1.2
+2808a81 Task 1.1
+9862fa4 Finish task2 and update code
+32b0d89 Add files via upload
