@@ -9,6 +9,7 @@ import java.util.Map;
  */
 public class StatementPrinter {
 
+    private static final String PLAY_TYPE_COMEDY = "comedy";
     private final Invoice invoice;
     private final Map<String, Play> plays;
 
@@ -20,39 +21,39 @@ public class StatementPrinter {
     /**
      * Returns a formatted statement for the invoice.
      *
-     * @return the formatted statement
+     * @return formatted statement string
      * @throws RuntimeException if an unknown play type appears
      */
     public String statement() {
 
         int totalAmount = 0;
         int volumeCredits = 0;
-        final StringBuilder result = new StringBuilder(
-                "Statement for " + invoice.getCustomer() + System.lineSeparator()
-        );
+        final StringBuilder result =
+                new StringBuilder("Statement for " + invoice.getCustomer()
+                        + System.lineSeparator());
 
-        final NumberFormat frmt = NumberFormat.getCurrencyInstance(Locale.US);
+        final NumberFormat frmt =
+                NumberFormat.getCurrencyInstance(Locale.US);
 
-        for (Performance p : invoice.getPerformances()) {
+        for (Performance perf : invoice.getPerformances()) {
 
-            final Play play = plays.get(p.getPlayID());
-            int thisAmount = calculateAmount(play, p);
+            final Play play = plays.get(perf.getPlayID());
+            final int thisAmount = calculateAmount(play, perf);
 
-            // volume credits
+            // Volume credits
             volumeCredits += Math.max(
-                    p.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD,
-                    0
-            );
+                    perf.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD, 0);
 
-            if ("comedy".equals(play.getType())) {
-                volumeCredits += p.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
+            if (PLAY_TYPE_COMEDY.equals(play.getType())) {
+                volumeCredits += perf.getAudience()
+                        / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
             }
 
             result.append(String.format(
                     "  %s: %s (%s seats)%n",
                     play.getName(),
                     frmt.format(thisAmount / Constants.PERCENT_FACTOR),
-                    p.getAudience()
+                    perf.getAudience()
             ));
 
             totalAmount += thisAmount;
@@ -60,95 +61,131 @@ public class StatementPrinter {
 
         result.append(String.format(
                 "Amount owed is %s%n",
-                frmt.format(totalAmount / Constants.PERCENT_FACTOR)
-        ));
+                frmt.format(totalAmount / Constants.PERCENT_FACTOR)));
 
         result.append(String.format(
                 "You earned %s credits%n",
-                volumeCredits
-        ));
+                volumeCredits));
 
         return result.toString();
     }
 
-    // ------------------------------
-    // ⭐ REQUIRED METHODS FOR MARKUS
-    // ------------------------------
-
-    /** MarkUs requires this helper */
+    /**
+     * Helper required by MarkUs.
+     *
+     * @param play play object
+     * @param perf performance
+     * @return calculated amount
+     */
     public int getAmount(Play play, Performance perf) {
         return calculateAmount(play, perf);
     }
 
-    /** MarkUs requires this helper */
+    /**
+     * Helper required by MarkUs.
+     *
+     * @param playID play id
+     * @return play
+     */
     public Play getPlay(String playID) {
         return plays.get(playID);
     }
 
-    /** MarkUs requires this helper */
+    /**
+     * Helper required by MarkUs.
+     *
+     * @param play play
+     * @param perf performance
+     * @return volume credits
+     */
     public int getVolumeCredits(Play play, Performance perf) {
-        int volumeCredits = Math.max(
+        int result = Math.max(
                 perf.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD,
-                0
-        );
-        if ("comedy".equals(play.getType())) {
-            volumeCredits += perf.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
+                0);
+
+        if (PLAY_TYPE_COMEDY.equals(play.getType())) {
+            result += perf.getAudience()
+                    / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
         }
-        return volumeCredits;
+        return result;
     }
 
-    /** MarkUs requires this helper */
+    /**
+     * Helper required by MarkUs.
+     *
+     * @param amount integer amount
+     * @return formatted USD string
+     */
     public String usd(int amount) {
         return NumberFormat.getCurrencyInstance(Locale.US)
-                .format((double) amount / Constants.PERCENT_FACTOR);
+                .format(amount / (double) Constants.PERCENT_FACTOR);
     }
 
-    /** MarkUs requires this helper */
+    /**
+     * Helper required by MarkUs.
+     *
+     * @return total amount
+     */
     public int getTotalAmount() {
         int total = 0;
         for (Performance perf : invoice.getPerformances()) {
-            Play play = plays.get(perf.getPlayID());
+            final Play play = plays.get(perf.getPlayID());
             total += calculateAmount(play, perf);
         }
         return total;
     }
 
-    /** MarkUs requires this helper */
+    /**
+     * Helper required by MarkUs.
+     *
+     * @return total volume credits
+     */
     public int getTotalVolumeCredits() {
-        int credits = 0;
+        int total = 0;
         for (Performance perf : invoice.getPerformances()) {
-            Play play = plays.get(perf.getPlayID());
-            credits += getVolumeCredits(play, perf);
+            final Play play = plays.get(perf.getPlayID());
+            total += getVolumeCredits(play, perf);
         }
-        return credits;
+        return total;
     }
 
-    // ------------------------------
-    // INTERNAL SHARED LOGIC
-    // ------------------------------
+    /**
+     * Shared internal logic for calculating the price of a performance.
+     *
+     * @param play play object
+     * @param perf performance
+     * @return calculated amount
+     * @throws RuntimeException if a play has an unknown type
+     */
+
     private int calculateAmount(Play play, Performance perf) {
-        int amount = 0;
+
+        int amount;
         switch (play.getType()) {
             case "tragedy":
                 amount = Constants.TRAGEDY_BASE_AMOUNT;
                 if (perf.getAudience() > Constants.TRAGEDY_AUDIENCE_THRESHOLD) {
                     amount += Constants.TRAGEDY_OVER_BASE_CAPACITY_PER_PERSON
-                            * (perf.getAudience() - Constants.TRAGEDY_AUDIENCE_THRESHOLD);
+                            * (perf.getAudience()
+                            - Constants.TRAGEDY_AUDIENCE_THRESHOLD);
                 }
                 break;
 
-            case "comedy":
+            case PLAY_TYPE_COMEDY:
                 amount = Constants.COMEDY_BASE_AMOUNT;
                 if (perf.getAudience() > Constants.COMEDY_AUDIENCE_THRESHOLD) {
                     amount += Constants.COMEDY_OVER_BASE_CAPACITY_AMOUNT
                             + Constants.COMEDY_OVER_BASE_CAPACITY_PER_PERSON
-                            * (perf.getAudience() - Constants.COMEDY_AUDIENCE_THRESHOLD);
+                            * (perf.getAudience()
+                            - Constants.COMEDY_AUDIENCE_THRESHOLD);
                 }
-                amount += Constants.COMEDY_AMOUNT_PER_AUDIENCE * perf.getAudience();
+                amount += Constants.COMEDY_AMOUNT_PER_AUDIENCE
+                        * perf.getAudience();
                 break;
 
             default:
-                throw new RuntimeException("unknown type: " + play.getType());
+                throw new RuntimeException(
+                        "unknown type: " + play.getType());
         }
         return amount;
     }
