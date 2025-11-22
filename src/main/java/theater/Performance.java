@@ -1,5 +1,10 @@
 package theater;
 
+/**
+ * Represents a performance entry.
+ *
+ * @null required by Checkstyle
+ */
 public class Performance {
     private final String playID;
     private final int audience;

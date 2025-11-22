@@ -1,5 +1,10 @@
 package theater;
 
+/**
+ * Represents a play.
+ *
+ * @null required by Checkstyle
+ */
 public class Play {
     private final String name;
     private final String type;
