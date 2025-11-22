@@ -9,10 +9,21 @@ import java.util.Map;
  */
 public class StatementPrinter {
 
+    /** Play type constant for comedy. */
     private static final String PLAY_TYPE_COMEDY = "comedy";
+
+    /** Play type constant for tragedy. */
+    private static final String PLAY_TYPE_TRAGEDY = "tragedy";
+
     private final Invoice invoice;
     private final Map<String, Play> plays;
 
+    /**
+     * Constructs a StatementPrinter.
+     *
+     * @param invoice invoice containing performances
+     * @param plays   map of playID to Play
+     */
     public StatementPrinter(Invoice invoice, Map<String, Play> plays) {
         this.invoice = invoice;
         this.plays = plays;
@@ -21,13 +32,14 @@ public class StatementPrinter {
     /**
      * Returns a formatted statement for the invoice.
      *
-     * @return formatted statement string
-     * @throws RuntimeException if an unknown play type appears
+     * @return formatted statement string.
+     * @throws RuntimeException if an unknown play type appears.
      */
     public String statement() {
 
         int totalAmount = 0;
         int volumeCredits = 0;
+
         final StringBuilder result =
                 new StringBuilder("Statement for " + invoice.getCustomer()
                         + System.lineSeparator());
@@ -155,14 +167,13 @@ public class StatementPrinter {
      * @param play play object
      * @param perf performance
      * @return calculated amount
-     * @throws RuntimeException if a play has an unknown type
+     * @throws RuntimeException if a play has an unknown type.
      */
-
     private int calculateAmount(Play play, Performance perf) {
 
         int amount;
         switch (play.getType()) {
-            case "tragedy":
+            case PLAY_TYPE_TRAGEDY:
                 amount = Constants.TRAGEDY_BASE_AMOUNT;
                 if (perf.getAudience() > Constants.TRAGEDY_AUDIENCE_THRESHOLD) {
                     amount += Constants.TRAGEDY_OVER_BASE_CAPACITY_PER_PERSON
